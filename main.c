@@ -10,12 +10,11 @@ void cmd_1(void *env) {
 }
 
 int main() {
-	char magic[4] = "hh\0\0";
 	uint32_t ver = 1;
 
 	struct loop *l = loop_create();
 	struct minipc *mp = minipc_create(l,
-			"minipc-demo", ntohl(*(uint32_t*)magic), ver);
+			"minipc-demo", 0xFEFE0000, ver);
 
 	minipc_add_cmd(mp, (struct minipc_cmd){
 		.cmd = 1, .env = NULL, .cb = cmd_1 });
