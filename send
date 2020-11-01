@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import sys, socket, struct
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.connect(sys.argv[1])
+
+magic = 0xFEFE0000
+ver = 1
+cmd = 1
+data = struct.pack(">III", magic, ver, cmd)
+print(data)
+
+sock.send(data)
+sock.close()
