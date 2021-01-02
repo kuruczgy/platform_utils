@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <minipc.h>
+#include <platform_utils/minipc.h>
 
 void cmd_1(void *env) {
 	fprintf(stderr, "%s called!\n", __func__);

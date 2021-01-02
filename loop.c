@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <ds/vec.h>
-#include <minipc.h>
+#include <stdbool.h>
+#include <platform_utils/loop.h>
 
 struct loop_entry {
 	void *env;
@@ -9,6 +10,7 @@ struct loop_entry {
 struct loop {
 	struct vec pollfds; /* vec<struct pollfd> */
 	struct vec entries; /* vec<struct loop_entry> */
+	bool stop;
 };
 
 struct loop *loop_create() {
@@ -18,6 +20,7 @@ struct loop *loop_create() {
 	}
 	l->pollfds = vec_new_empty(sizeof(struct pollfd));
 	l->entries = vec_new_empty(sizeof(struct loop_entry));
+	l->stop = false;
 	return l;
 }
 void loop_destroy(struct loop *l) {
@@ -42,8 +45,11 @@ void loop_remove(struct loop *l, int fd) {
 		}
 	}
 }
+void loop_stop(struct loop *l) {
+	l->stop = true;
+}
 void loop_run(struct loop *l) {
-	while (poll(l->pollfds.d, l->pollfds.len, -1) != -1) {
+	while (!l->stop && poll(l->pollfds.d, l->pollfds.len, -1) != -1) {
 		for (int i = 0; i < l->pollfds.len; ++i) {
 			struct pollfd *pfd = vec_get(&l->pollfds, i);
 			if (pfd->revents != 0) {

@@ -1,24 +1,31 @@
-project('minipc', 'c', version : '0.1')
+project('platform_utils', 'c', version : '0.1')
 
 ds_proj = subproject('ds')
-ds_vec = ds_proj.get_variable('ds_vec_dep')
+ds_vec_dep = ds_proj.get_variable('ds_vec_dep')
 
 incdir = include_directories('include')
 
-minipc = library(
-  'minipc',
-  'minipc.c',
+pu_loop = library(
+  'pu-loop',
   'loop.c',
-  dependencies : [ ds_vec ],
-  include_directories : incdir
+  dependencies: ds_vec_dep,
+  include_directories: incdir
 )
-minipc_dep = declare_dependency(link_with : minipc, include_directories : incdir)
+pu_loop_dep = declare_dependency(link_with: pu_loop, include_directories: incdir)
+
+pu_minipc = library(
+  'pu-minipc',
+  'minipc.c',
+  dependencies: [ ds_vec_dep, pu_loop_dep ],
+  include_directories: incdir
+)
+pu_minipc_dep = declare_dependency(link_with: pu_minipc, include_directories: incdir)
 
 executable(
-  'minipc',
+  'minipc-test',
   'loop.c',
   'minipc.c',
-  'main.c',
-  dependencies : [ ds_vec ],
-  include_directories : incdir
+  'minipc-test.c',
+  dependencies: ds_vec_dep,
+  include_directories: incdir
 )
