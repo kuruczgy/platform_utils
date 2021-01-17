@@ -6,12 +6,12 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
-#include <minipc.h>
+#include <platform_utils/minipc.h>
 #include <ds/vec.h>
 
 struct minipc {
 	int sfd;
-	struct loop *l;
+	struct event_loop *el;
 	struct vec cmds;
 	uint32_t magic, ver;
 };
@@ -68,7 +68,7 @@ static void client_cb(void *env, struct pollfd pfd) {
 		}
 	}
 	if (pfd.revents & (POLLHUP | POLLNVAL)) {
-		loop_remove(mp->l, pfd.fd);
+		event_loop_remove_fd(mp->el, pfd.fd);
 		fprintf(stderr, "disconnect[%d]\n", pfd.fd);
 		return;
 	}
@@ -76,7 +76,7 @@ static void client_cb(void *env, struct pollfd pfd) {
 static void accept_cb(void *env, struct pollfd pfd) {
 	struct minipc *mp = env;
 	if (pfd.revents & (POLLHUP | POLLNVAL)) {
-		loop_remove(mp->l, pfd.fd);
+		event_loop_remove_fd(mp->el, pfd.fd);
 		return;
 	}
 	if (pfd.revents & POLLIN) {
@@ -84,15 +84,15 @@ static void accept_cb(void *env, struct pollfd pfd) {
 		if (fd == -1) {
 			return;
 		}
-		loop_add(mp->l, fd, POLLIN, mp, client_cb);
+		event_loop_add_fd(mp->el, fd, POLLIN, mp, client_cb);
 		fprintf(stderr, "accept[%d]\n", fd);
 	}
 }
 
-struct minipc *minipc_create(struct loop *l, const char *name, uint32_t magic,
-		uint32_t ver) {
+struct minipc *minipc_create(struct event_loop *el, const char *name,
+		uint32_t magic, uint32_t ver) {
 	struct minipc *mp = malloc(sizeof(struct minipc));
-	mp->l = l;
+	mp->el = el;
 	mp->magic = magic;
 	mp->ver = ver;
 
@@ -102,7 +102,7 @@ struct minipc *minipc_create(struct loop *l, const char *name, uint32_t magic,
 		return NULL;
 	}
 
-	mp-> sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	mp->sfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (mp->sfd == -1) {
 		free(mp);
 		return NULL;
@@ -121,13 +121,13 @@ struct minipc *minipc_create(struct loop *l, const char *name, uint32_t magic,
 		return NULL;
 	}
 
-	loop_add(mp->l, mp->sfd, POLLIN, mp, accept_cb);
+	event_loop_add_fd(mp->el, mp->sfd, POLLIN, mp, accept_cb);
 
 	mp->cmds = vec_new_empty(sizeof(struct minipc_cmd));
 	return mp;
 }
 void minipc_destroy(struct minipc *mp) {
-	loop_remove(mp->l, mp->sfd);
+	event_loop_remove_fd(mp->el, mp->sfd);
 	close(mp->sfd);
 	vec_free(&mp->cmds);
 	free(mp);

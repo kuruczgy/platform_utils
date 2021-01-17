@@ -1,17 +1,13 @@
-
-extern int platform_main(int argc, char **argv);
+#include <platform_utils/main.h>
 
 #if defined(__ANDROID__)
-#include <android_native_app_glue.h>
-void android_main(struct android_app *state) {
-	platform_main(0, (char*[]){ NULL });
-	while (1) {
-		if (state->destroyRequested != 0) break;
-	}
-
+void android_main(struct android_app *app) {
+	struct platform plat = { .app = app };
+	platform_main(&plat);
 }
 #else
 int main(int argc, char **argv) {
-	platform_main(argc, argv);
+	struct platform plat = { .argc = argc, .argv = argv };
+	platform_main(&plat);
 }
 #endif
