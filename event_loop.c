@@ -34,7 +34,7 @@ struct event_loop *event_loop_create(struct platform *plat) {
 	struct event_loop *el = malloc(sizeof(struct event_loop));
 	if (!el) return NULL;
 
-	el->plat = plat;
+	*el = (struct event_loop){ .plat = plat };
 
 #if defined(__ANDROID__)
 	// nothing
@@ -62,10 +62,9 @@ void event_loop_run(struct event_loop *el) {
 	int ident;
 	int events;
 	void *data;
-	int timeout = el->idle.f ? 0 : -1;
 	while (true) {
-		while ((ident = ALooper_pollAll(
-				timeout, NULL, &events, &data)) >= 0) {
+		while ((ident = ALooper_pollAll(el->idle.f ? 0 : -1,
+				NULL, &events, &data)) >= 0) {
 			if (ident == LOOPER_ID_MAIN
 					|| ident == LOOPER_ID_INPUT) {
 				struct android_poll_source *source = data;
