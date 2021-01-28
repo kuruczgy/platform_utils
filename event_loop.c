@@ -11,10 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#if !defined(__EMSCRIPTEN__)
 #include <ds/vec.h>
-#endif
-
 
 struct loop_entry {
 	void *env;
@@ -30,12 +27,8 @@ struct event_loop {
 		void (*f)(void *env);
 	} idle;
 #endif
-#if defined(__EMSCRIPTEN__)
-	//nothing
-#else
 	struct vec pollfds; /* vec<struct pollfd> */
 	struct vec entries; /* vec<struct loop_entry> */
-#endif
 };
 
 struct event_loop *event_loop_create(struct platform *plat) {
@@ -124,7 +117,6 @@ void event_loop_set_idle_func(struct event_loop *el,
 }
 #endif
 
-#if !defined(__EMSCRIPTEN__)
 void event_loop_add_fd(struct event_loop *el, int fd,
 		short evs, void *env, event_loop_cb cb) {
 	struct pollfd pfd = { .fd = fd, .events = evs };
@@ -152,7 +144,6 @@ void event_loop_remove_fd(struct event_loop *el, int fd) {
 	ALooper_removeFd(el->plat->app->looper, fd);
 #endif
 }
-#endif
 
 struct platform *event_loop_get_platform(struct event_loop *el) {
 	return el->plat;

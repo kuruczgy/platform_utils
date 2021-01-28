@@ -2,16 +2,14 @@
 #define PLATFORM_UTILS_EVENT_LOOP_H
 #include <platform_utils/main.h>
 #include <time.h>
+#include <poll.h>
 
 struct event_loop;
 
-#if !defined(__EMSCRIPTEN__)
-#include <poll.h>
 typedef void (*event_loop_cb)(void *env, struct pollfd pfd);
 void event_loop_add_fd(struct event_loop *el, int fd,
 	short evs, void *env, event_loop_cb cb);
 void event_loop_remove_fd(struct event_loop *el, int fd);
-#endif
 
 #if defined(__ANDROID__)
 void event_loop_set_idle_func(struct event_loop *el,

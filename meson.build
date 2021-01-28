@@ -46,7 +46,25 @@ pu_event_loop = library(
 )
 pu_event_loop_dep = declare_dependency(link_with: pu_event_loop, include_directories: incdir)
 
-if host_machine.system() != 'linux-android'
+pu_assets_dep = declare_dependency(include_directories: incdir)
+
+# open issue on how this should be done properly:
+# https://github.com/mesonbuild/meson/issues/2434
+prog_sh = find_program('sh', required: false)
+if prog_sh.found()
+  pu_assets_embed_gen = generator(
+    prog_sh,
+    arguments: [ '-c',
+      'printf "unsigned char emb_data_%s[] = {" "$1" ' +
+      '&& xxd -i < @INPUT@' +
+      '&& printf "}; unsigned long emb_size_%s = sizeof(emb_data_%s);" "$1" "$1"',
+      '-', '@EXTRA_ARGS@' ],
+    capture: true,
+    output: 'emb_@PLAINNAME@.c'
+  )
+endif
+
+if host_machine.system() == 'linux'
 pu_minipc = library(
   'pu-minipc',
   'minipc.c',
@@ -71,3 +89,4 @@ if not meson.is_subproject()
     include_directories: incdir
   )
 endif
+
