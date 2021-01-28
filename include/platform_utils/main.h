@@ -7,8 +7,10 @@
 
 struct platform {
 #if defined(__ANDROID__)
+#define PU_MAIN_HAS_ARGS 0
 	struct android_app *app;
 #else
+#define PU_MAIN_HAS_ARGS 1
 	int argc;
 	char **argv;
 #endif

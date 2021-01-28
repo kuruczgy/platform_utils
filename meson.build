@@ -23,6 +23,13 @@ pu_main = library(
 )
 pu_main_dep = declare_dependency(link_with: pu_main, include_directories: incdir)
 
+pu_sys = library(
+  'pu-sys',
+  'sys.c',
+  include_directories: incdir,
+)
+pu_sys_dep = declare_dependency(link_with: pu_sys, include_directories: incdir)
+
 pu_log = library(
   'pu-log',
   'log.c',
