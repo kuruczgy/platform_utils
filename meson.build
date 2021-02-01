@@ -46,7 +46,12 @@ pu_event_loop = library(
 )
 pu_event_loop_dep = declare_dependency(link_with: pu_event_loop, include_directories: incdir)
 
-pu_assets_dep = declare_dependency(include_directories: incdir)
+pu_assets = library(
+  'pu-assets',
+  'assets.c',
+  include_directories: incdir
+)
+pu_assets_dep = declare_dependency(link_with: pu_assets, include_directories: incdir)
 
 # open issue on how this should be done properly:
 # https://github.com/mesonbuild/meson/issues/2434
